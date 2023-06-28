@@ -1,38 +1,36 @@
 pipeline {
     agent any
 
-    parameters {
-        string(name: 'RELEASE', defaultValue: '7.6.2', description: 'Release version for the patch')
-        string(name: 'URL', defaultValue: 'http://...', description: 'URL to download the .zip file')
-        string(name: 'ZIP_FILE', defaultValue: 'keycloak-services-18.0.4-patch.zip', description: 'Name of the .zip file to download and unpack')
-        string(name: 'JAR_FILE', defaultValue: 'keycloak-services-18.0.4-patch.jar', description: 'Name of the .jar file to create')
-    }
-
     stages {
-        stage('Prepare Environment') {
-            steps {
-                // Clean the workspace
-                deleteDir()
-            }
-        }
-
-        stage('Download and Unpack Zip') {
-            steps {
-                // Download the zip file
-                sh "curl -O ${params.URL}/${params.ZIP_FILE}"
-                // Unpack the zip file
-                sh "unzip ${params.ZIP_FILE}"
-            }
-        }
-
         stage('Patch Creation') {
             steps {
+                script {
+                    // Download the zip file
+                    sh 'curl -o /path/to/download/directory/myZipFile.zip <URL>'
+                    // Unzip the file
+                    sh 'unzip /path/to/download/directory/myZipFile.zip -d /path/to/unzipped/directory'
+                    // Patch creation
+                    sh """
+                    java -jar /path/to/patch-creator.jar -p sso -v 7.6.2 -t -debug -i 12345 -d "test patch" -c /path/to/unzipped/directory/keycloak-services-18.0.4-patch.jar
+                    """
+                }
+            }
+        }
+        stage('Upload Artifacts') {
+            steps {
                 sh """
-                java -jar /path/to/patch-creator.jar -p sso -v ${params.RELEASE} -tm -debug -i 12345 -d "test patch" -c ${params.JAR_FILE}
+                rsync -rlp --info=progress2 /path/to/generated/patch/file \
+                spmm-util.hosts.prod.psi.bos.redhat.com:staging/product/
                 """
             }
         }
-
+        stage('Stage Patch') {
+            steps {
+                sh """
+                ssh -K spmm-util.hosts.prod.psi.bos.redhat.com stage-mw-release PRODUCT-7.6.2
+                """
+            }
+        }
         stage('Patch Implementation') {
             steps {
                 sh """
@@ -43,8 +41,20 @@ pipeline {
                 """
             }
         }
+        stage('Override If Necessary') {
+            when {
+                // Here, condition should be an expression that evaluates to true if an override is necessary
+                expression { return <CONDITION> }
+            }
+            steps {
+                // If an override is necessary, include steps for how to handle it here
+                // For example:
+                sh """
+                cp /path/to/override/file /path/to/myJavaApplication.jar
+                """
+            }
+        }
     }
-
     post {
         success {
             umbSend 'rh-sso.server.end.success' // Send a UMB message when the pipeline completes successfully
