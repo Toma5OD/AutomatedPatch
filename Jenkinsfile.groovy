@@ -2,13 +2,16 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'RELEASE', defaultValue: '7.6.2', description: 'Release version for the patch')
-        string(name: 'URL', defaultValue: 'http://...', description: 'URL to download the .zip file')
-        string(name: 'ZIP_FILE', defaultValue: 'keycloak-services-18.0.4-patch.zip', description: 'Name of the .zip file to download and unpack')
-        string(name: 'JAR_FILE', defaultValue: 'keycloak-services-18.0.4-patch.jar', description: 'Name of the .jar file to create')
+        string(name: 'RELEASE', description: 'Release version for the patch')
+        string(name: 'URL', description: 'URL to download the .zip file')
+        string(name: 'ZIP_FILE', description: 'Name of the .zip file to download and unpack')
+        string(name: 'JAR_FILE', description: 'Name of the .jar file to create')
+        string(name: 'PATCH_CREATOR_PATH', description: 'Path to patch-creator.jar')
+        string(name: 'JAVA_APP_PATH', description: 'Path to myJavaApplication.jar')
     }
 
     stages {
+        // This stage prepares the environment for the pipeline
         stage('Prepare Environment') {
             steps {
                 script {
@@ -16,12 +19,13 @@ pipeline {
                         // Clean the workspace
                         deleteDir()
                     } catch (Exception e) {
-                        error("Failed to prepare the environment: ${e.message}")
+                        error("Error encountered at the 'Prepare Environment' stage: ${e.message}")
                     }
                 }
             }
         }
 
+        // This stage downloads and unpacks the required zip file
         stage('Download and Unpack Zip') {
             steps {
                 script {
@@ -31,38 +35,40 @@ pipeline {
                         // Unpack the zip file
                         sh "unzip ${params.ZIP_FILE}"
                     } catch (Exception e) {
-                        error("Failed to download and unpack zip: ${e.message}")
+                        error("Error encountered at the 'Download and Unpack Zip' stage: ${e.message}")
                     }
                 }
             }
         }
 
+        // This stage creates the required patch using the provided JAR file
         stage('Patch Creation') {
             steps {
                 script {
                     try {
                         sh """
-                        java -jar /path/to/patch-creator.jar -p sso -v ${params.RELEASE} -tm -debug -i 12345 -d "test patch" -c ${params.JAR_FILE}
+                        java -jar ${params.PATCH_CREATOR_PATH} -p sso -v ${params.RELEASE} -tm -debug -i 12345 -d "test patch" -c ${params.JAR_FILE}
                         """
                     } catch (Exception e) {
-                        error("Failed to create patch: ${e.message}")
+                        error("Error encountered at the 'Patch Creation' stage: ${e.message}")
                     }
                 }
             }
         }
 
+        // This stage implements the created patch into the Java application
         stage('Patch Implementation') {
             steps {
                 script {
                     try {
                         sh """
                         service myJavaApplication stop
-                        mv /path/to/myJavaApplication.jar /path/to/myJavaApplication.jar.backup
-                        cp /path/to/generated/patch/file /path/to/myJavaApplication.jar
+                        mv ${params.JAVA_APP_PATH} ${params.JAVA_APP_PATH}.backup
+                        cp /path/to/generated/patch/file ${params.JAVA_APP_PATH}
                         service myJavaApplication start
                         """
                     } catch (Exception e) {
-                        error("Failed to implement patch: ${e.message}")
+                        error("Error encountered at the 'Patch Implementation' stage: ${e.message}")
                     }
                 }
             }
@@ -70,6 +76,7 @@ pipeline {
     }
 
     post {
+        // Sends UMB messages depending on the outcome of the pipeline
         success {
             umbSend 'rh-sso.server.end.success' // Send a UMB message when the pipeline completes successfully
         }
@@ -81,4 +88,3 @@ pipeline {
         }
     }
 }
-
