@@ -29,12 +29,75 @@ The automated patch creation and implementation process using this pipeline typi
 The pipeline consists of several stages:
 
 1. **Prepare Environment:** This stage involves workspace cleaning in preparation for the pipeline run.
+    ```groovy
+    stage('Prepare Environment') {
+        steps {
+            script {
+                try {
+                    // Clean the workspace
+                    deleteDir()
+                } catch (Exception e) {
+                    error("Error encountered at the 'Prepare Environment' stage: ${e.message}")
+                }
+            }
+        }
+    }
+    ```
 
 2. **Download and Unpack Zip:** This stage downloads a zip file from a provided URL and unpacks it.
+    ```groovy
+    stage('Download and Unpack Zip') {
+        steps {
+            script {
+                try {
+                    // Download the zip file
+                    sh "curl -O ${params.URL}/${params.ZIP_FILE}"
+                    // Unpack the zip file
+                    sh "unzip ${params.ZIP_FILE}"
+                } catch (Exception e) {
+                    error("Error encountered at the 'Download and Unpack Zip' stage: ${e.message}")
+                }
+            }
+        }
+    }
+    ```
 
 3. **Patch Creation:** This stage creates a patch using a provided JAR file.
+    ```groovy
+    stage('Patch Creation') {
+        steps {
+            script {
+                try {
+                    sh """
+                    java -jar ${params.PATCH_CREATOR_PATH} -p sso -v ${params.RELEASE} -tm -debug -i 12345 -d "test patch" -c ${params.JAR_FILE}
+                    """
+                } catch (Exception e) {
+                    error("Error encountered at the 'Patch Creation' stage: ${e.message}")
+                }
+            }
+        }
+    }
+    ```
 
 4. **Patch Implementation:** This stage implements the created patch into the RH-SSO source code.
+    ```groovy
+    stage('Patch Implementation') {
+        steps {
+            script {
+                try {
+                    sh """
+                    service myJavaApplication stop
+                    mv ${params.RH_SSO_PATH} ${params.RH_SSO_PATH}.backup
+                    cp /path/to/generated/patch/file ${params.RH_SSO_PATH}
+                    service myJavaApplication start
+                    """
+                } catch (Exception e) {
+                    error("Error encountered at the 'Patch Implementation' stage: ${e.message}")
+                }
+            }
+        }
+    }
+    ```
 
 ## Usage
 
