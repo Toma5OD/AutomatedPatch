@@ -128,6 +128,45 @@ Upon pipeline completion, a Unified Message Bus (UMB) message is sent based on t
 
 This pipeline requires Jenkins with the Pipeline plugin installed. Additionally, the pipeline expects the `patch-creator.jar` file and the RH-SSO source code at the specified paths.
 
+## Differences Between This Jenkins Pipeline and the Previous Patch Script
+
+The primary differences between this new Jenkins pipeline and the previous Bash patch script include the following:
+
+1. **Programming Language:** The new pipeline is written in Groovy for Jenkins, a continuous integration/continuous deployment (CI/CD) server, while the previous script is written in Bash.
+
+2. **Pipeline Stages:** The new pipeline breaks down the process into distinct stages: 'Prepare Environment', 'Download and Unpack Zip', 'Patch Creation', and 'Patch Implementation'. The old script doesn't have explicit stages, making it harder to identify where a problem might occur.
+
+3. **Error Handling:** The new pipeline has robust error handling at each stage and provides detailed error messages for troubleshooting. In the old script, errors are less straightforward to handle and debug.
+
+4. **Patch Implementation:** The new pipeline implements the patch into the RH-SSO source code, while the old script just generates the patch.
+
+5. **Environment Variables:** The previous script depends on environment variables and command-line arguments, while the new pipeline uses Jenkins parameters which can be input at runtime or configured for automated runs.
+
+6. **Running Environment:** The previous Bash script runs in a shell environment, while the new pipeline runs within the Jenkins environment, offering more flexibility and better integration with other CI/CD processes.
+
+Here's a side-by-side comparison for each stage:
+
+- **Prepare Environment:** 
+
+    The new pipeline starts with a 'Prepare Environment' stage, which cleans the workspace for a fresh run. There's no equivalent in the previous script.
+
+- **Download and Unpack Zip:** 
+
+    The old script creates a patch based on the files modified in a specified branch. In contrast, the new pipeline downloads and unpacks a zip file, providing flexibility in fetching files.
+
+- **Patch Creation:** 
+
+    Both the script and the new pipeline have patch creation steps. However, the old script requires creating a config.xml file to specify the details for the patchCreator.sh command, while the new pipeline directly runs a Java command with specified parameters.
+
+- **Patch Implementation:**
+
+    This is a new stage in the Jenkins pipeline, where the created patch is implemented into the Java application. The old script doesn't have this stage; it only creates the patch.
+
+Remember, the new pipeline requires Jenkins with the Pipeline plugin installed. The old script can be run directly in a shell environment.
+
+These changes enhance the overall maintainability and readability of the pipeline, making it more manageable, versatile, and aligned with modern development practices.
+
+
 ## Additional Information
 
 This pipeline is a work-in-progress by Tomas O Dalaigh and the Keycloak Automation team at Red Hat. Your feedback and contributions are greatly appreciated and will help us improve the pipeline.
