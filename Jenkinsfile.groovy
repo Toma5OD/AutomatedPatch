@@ -7,7 +7,7 @@ pipeline {
         string(name: 'ZIP_FILE', description: 'Name of the .zip file to download and unpack')
         string(name: 'JAR_FILE', description: 'Name of the .jar file to create')
         string(name: 'PATCH_CREATOR_PATH', description: 'Path to patch-creator.jar')
-        string(name: 'JAVA_APP_PATH', description: 'Path to myJavaApplication.jar')
+        string(name: 'RH_SSO_PATH', description: 'Path to RH-SSO source code')
     }
 
     stages {
@@ -56,15 +56,15 @@ pipeline {
             }
         }
 
-        // This stage implements the created patch into the Java application
+        // This stage implements the created patch into the RH-SSO source code
         stage('Patch Implementation') {
             steps {
                 script {
                     try {
                         sh """
                         service myJavaApplication stop
-                        mv ${params.JAVA_APP_PATH} ${params.JAVA_APP_PATH}.backup
-                        cp /path/to/generated/patch/file ${params.JAVA_APP_PATH}
+                        mv ${params.RH_SSO_PATH} ${params.RH_SSO_PATH}.backup
+                        cp /path/to/generated/patch/file ${params.RH_SSO_PATH}
                         service myJavaApplication start
                         """
                     } catch (Exception e) {
