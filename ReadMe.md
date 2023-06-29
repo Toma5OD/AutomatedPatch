@@ -4,8 +4,13 @@ Tool Type: Patch Creation and Adaptation Tool for RH-SSO
 Language: Groovy  
 Developer: Tomas O Dalaigh
 
-This Jenkins pipeline is developed by the Keycloak Automation team at Red Hat. The primary function of the pipeline is to automate the process of patch creation and implementation for the Red Hat Single Sign-On (RH-SSO) source code. The pipeline is authored in Groovy, providing scripting capabilities for the Java platform.
 
+This Jenkins pipeline is developed by the Keycloak Automation team at Red Hat. The primary function of the pipeline is to automate the process of patch creation and implementation for the Red Hat Single Sign-On (RH-SSO) source code. The pipeline is authored in Groovy, providing scripting capabilities for the Java platform.
+<br><br>
+
+---
+
+<br><br>
 ## Workflow
 
 The automated patch creation and implementation process using this pipeline typically follows these steps:
@@ -24,6 +29,11 @@ The automated patch creation and implementation process using this pipeline typi
 
 7. **Merging the Branch:** Post-verification, the "Patch Branch" is merged with the main branch, making the patch available to RH-SSO users.
 
+<br><br>
+
+---
+
+<br><br>
 ## Stages
 
 The pipeline consists of several stages:
@@ -44,6 +54,8 @@ The pipeline consists of several stages:
     }
     ```
 
+<br><br>
+
 2. **Download and Unpack Zip:** This stage downloads a zip file from a provided URL and unpacks it.
     ```groovy
     stage('Download and Unpack Zip') {
@@ -61,6 +73,7 @@ The pipeline consists of several stages:
         }
     }
     ```
+<br><br>
 
 3. **Patch Creation:** This stage creates a patch using a provided JAR file.
     ```groovy
@@ -78,6 +91,7 @@ The pipeline consists of several stages:
         }
     }
     ```
+<br><br>
 
 4. **Patch Implementation:** This stage implements the created patch into the RH-SSO source code.
     ```groovy
@@ -99,6 +113,12 @@ The pipeline consists of several stages:
     }
     ```
 
+<br><br>
+
+---
+
+<br><br>
+
 ## Usage
 
 To use this Jenkins pipeline, the following parameters need to be specified:
@@ -112,9 +132,20 @@ To use this Jenkins pipeline, the following parameters need to be specified:
 
 These parameters can be entered manually when triggering the pipeline via the Jenkins interface or can be provided automatically if the pipeline is triggered as part of an automated process.
 
+<br><br>
+
+---
+
+<br><br>
+
 ## Error Handling
 
 Each pipeline stage includes error handling. In case of an error during any stage, an error message is generated specifying the name of the stage and the error message.
+
+<br><br>
+
+---
+<br><br>
 
 ## Notifications
 
@@ -124,9 +155,21 @@ Upon pipeline completion, a Unified Message Bus (UMB) message is sent based on t
 - If the pipeline fails, a UMB message with the topic 'rh-sso.server.end.error.failure' is sent.
 - If the pipeline is aborted, a UMB message with the topic 'rh-sso.server.end.error.aborted' is sent.
 
+<br><br>
+
+---
+
+<br><br>
+
 ## Requirements
 
 This pipeline requires Jenkins with the Pipeline plugin installed. Additionally, the pipeline expects the `patch-creator.jar` file and the RH-SSO source code at the specified paths.
+
+<br><br>
+
+---
+
+<br><br>
 
 ## Differences Between This Jenkins Pipeline and the Previous Patch Script
 
@@ -143,6 +186,8 @@ The primary differences between this new Jenkins pipeline and the previous Bash 
 5. **Environment Variables:** The previous script depends on environment variables and command-line arguments, while the new pipeline uses Jenkins parameters which can be input at runtime or configured for automated runs.
 
 6. **Running Environment:** The previous Bash script runs in a shell environment, while the new pipeline runs within the Jenkins environment, offering more flexibility and better integration with other CI/CD processes.
+
+<br><br>
 
 Here's a side-by-side comparison for each stage:
 
@@ -166,7 +211,18 @@ Remember, the new pipeline requires Jenkins with the Pipeline plugin installed. 
 
 These changes enhance the overall maintainability and readability of the pipeline, making it more manageable, versatile, and aligned with modern development practices.
 
+<br><br>
+
+---
+
+<br><br>
 
 ## Additional Information
 
 This pipeline is a work-in-progress by Tomas O Dalaigh and the Keycloak Automation team at Red Hat. Your feedback and contributions are greatly appreciated and will help us improve the pipeline.
+
+<br><br>
+
+---
+---
+---
