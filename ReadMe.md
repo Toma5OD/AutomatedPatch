@@ -115,6 +115,28 @@ The pipeline consists of several stages:
 
 <br><br>
 
+5. **Upload and Stage Release:** This stage uploads the required files and stages the release on the remote server.
+    ```groovy
+    stage('Upload and Stage Release') {
+        steps {
+            script {
+                try {
+                    // Upload the content to the rcm-guest volume
+                    sh "rsync -rlp --info=progress2 ${params.ZIP_FILE} ${params.SSH_USER}@${params.SSH_HOST}:${params.TARGET_DIR}"
+                    
+                    // Stage the release
+                    sh "ssh ${params.SSH_USER}@${params.SSH_HOST} 'stage-mw-release ${params.RELEASE}'"
+                } catch (Exception e) {
+                    error("Error encountered at the 'Upload and Stage Release' stage: ${e.message}")
+                }
+            }
+        }
+    }
+    ```
+
+
+<br><br>
+
 ---
 
 <br><br>
@@ -129,6 +151,9 @@ To use this Jenkins pipeline, the following parameters need to be specified:
 - `JAR_FILE`: The name of the JAR file to be used in patch creation
 - `PATCH_CREATOR_PATH`: The path to `patch-creator.jar`
 - `RH_SSO_PATH`: The path to the RH-SSO source code
+- `SSH_HOST`: The SSH host address
+- `SSH_USER`: The SSH username
+- `TARGET_DIR`: The target directory on the remote server
 
 These parameters can be entered manually when triggering the pipeline via the Jenkins interface or can be provided automatically if the pipeline is triggered as part of an automated process.
 
