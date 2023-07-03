@@ -65,10 +65,8 @@ pipeline {
                 script {
                     try {
                         sh """
-                        service myJavaApplication stop
                         mv ${params.RH_SSO_PATH} ${params.RH_SSO_PATH}.backup
                         cp /path/to/generated/patch/file ${params.RH_SSO_PATH}
-                        service myJavaApplication start
                         """
                     } catch (Exception e) {
                         error("Error encountered at the 'Patch Implementation' stage: ${e.message}")
