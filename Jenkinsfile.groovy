@@ -1,6 +1,5 @@
-pipeline {
-    agent any
-
+pipelineJob('rhbk-patch-testing-job') {
+    description('This job creates and tests patches for the RH-SSO source code. Its designed to identify the changes, prepare a patch, implement it, and then stage the release.')
     parameters {
         string(name: 'RELEASE', description: 'Release version for the patch')
         string(name: 'URL', description: 'URL to download the .zip file')
@@ -11,6 +10,9 @@ pipeline {
         string(name: 'SSH_HOST', description: 'SSH host address')
         string(name: 'SSH_USER', description: 'SSH username')
         string(name: 'TARGET_DIR', description: 'Target directory on the remote server')
+        booleanParam('DRY_RUN', false, 'If true, do not push to git. No changes will be made anywhere. Check the log for the commit that would have been pushed')
+        stringParam('PIPELINE_REPO', 'https://gitlab.cee.redhat.com/keycloak/keycloak-pipeline.git', '')
+        stringParam('PIPELINE_BRANCH', 'main', '')
     }
 
     stages {
