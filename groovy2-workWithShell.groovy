@@ -26,7 +26,7 @@ pipelineJob('patch-testing-pipeline') {
                     branch('$PIPELINE_BRANCH')
                 }
             }
-            scriptPath('patch-testing-pipeline/Jenkinsfile') // Adjust Jenkinsfile path according to your structure
+            scriptPath('patch-testing-pipeline/pipeline.sh') // We will call our bash script here
         }
     }
 }

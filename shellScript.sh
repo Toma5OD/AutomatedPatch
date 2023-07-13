@@ -1,45 +1,28 @@
 #!/bin/bash
 
-set -xeuo pipefail
+set -e # Exit script on first error
 
-gitlab_repo="git@gitlab.cee.redhat.com:keycloak/keycloak-pipeline.git"
+# Prepare Environment
+echo "Cleaning workspace..."
+rm -rf *
 
-export GIT_SSH_COMMAND='ssh -o PreferredAuthentications=publickey -l git'
+# Download and Unpack Zip
+echo "Downloading zip file..."
+curl -O $URL/$ZIP_FILE
+echo "Unpacking zip file..."
+unzip $ZIP_FILE
 
-workdir="patch-testing"
-rm -rf "$workdir"
-git clone --branch "$PIPELINE_BRANCH" --depth=1 -- "$gitlab_repo" "$workdir"
-pushd "$workdir"
+# Patch Creation
+echo "Creating patch..."
+java -jar $PATCH_CREATOR_PATH -p sso -v $RELEASE -tm -debug -i 12345 -d "test patch" -c $JAR_FILE
 
-# Here, instead of running sync.sh, you'd run your testing script
-./run-tests.sh
+# Patch Implementation
+echo "Implementing patch..."
+mv $RH_SSO_PATH $RH_SSO_PATH.backup
+cp /path/to/generated/patch/file $RH_SSO_PATH
 
-CHANGE_COUNT="$(git diff --name-only | wc -l)"
-export CHANGE_COUNT
-
-if [[ "$BUILD_USER_ID" == "timer" ]]
-then
-    message="Automatic test $(date -Ihours)"
-else
-    message="Manual test by $BUILD_USER_ID"
-fi
-
-# You may or may not need this git add/commit/push sequence, depending on whether your tests make changes that need to be saved
-git add -A results
-if git commit -m "$message"
-then
-    git show HEAD
-
-    if [[ "$DRY_RUN" == "false" ]]
-    then
-        git push origin "$PIPELINE_BRANCH"
-    else
-        echo ">>> DRY RUN: GIT PUSH DISABLED <<<" >&2
-    fi
-else
-    echo "No changes: skipping git push" >&2
-fi
-
-popd
-
-unset GIT_SSH_COMMAND
+# Upload and Stage Release
+echo "Uploading zip file..."
+rsync -rlp --info=progress2 $ZIP_FILE $SSH_USER@$SSH_HOST:$TARGET_DIR
+echo "Staging release..."
+ssh $SSH_USER@$SSH_HOST 'stage-mw-release $RELEASE'
